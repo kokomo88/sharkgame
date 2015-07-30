@@ -9,13 +9,18 @@
 .bug{
   width:50px;
   height:50px;
-  background: red;
+  background-image: url(http://www.maclife.com/files/imagecache/futureus_imagegallery_fullsize/gallery/malwarebug.jpg);
+  background-size: cover;
+  background-position: center;
   position:absolute;
 }
 .shark{
-  width:50px;
+  width:100px;
   height:100px;
-  background: blue;
+  background-image: url(https://bitrise-prod-web-assets.s3.amazonaws.com/assets/landing/features/2-code-38b74d1ead5547ae7cb48c8bd0c21fba8eeee4eafe28e55f6875b58d8b837c2c.svg);
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
   position:absolute;
 }
 .projectile{

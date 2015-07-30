@@ -4,6 +4,7 @@
   width:600px;
   height:600px;
   position:relative;
+  overflow:hidden;
 }
 .bug{
   width:50px;

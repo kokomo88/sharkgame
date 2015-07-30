@@ -2,6 +2,7 @@ var gameContainer;
 var laserShark;
 var bugs = [];
 var projectiles = [];
+var bugProjectiles = [];
 var mapX = 600;
 var mapY = 600;
 var bugSize = 50;
@@ -26,27 +27,33 @@ var count = 0;
 
 var Key = {
   _pressed: {},
+  _pressedcheckOnce:{},
 
   LEFT: 37,
-  //UP: 38,
+  UP: 38,
   RIGHT: 39,
   DOWN: 40,
-	//SPACE: 32,
+	SPACE: 32,
 
+  isPressed: function(keyCode){
+    if (this._pressedcheckOnce[keyCode]){
+      var obj = JSON.parse(JSON.stringify(this._pressedcheckOnce[keyCode]));
+      this._pressedcheckOnce[keyCode] = 0;
+      return obj;
+    }
+  },
   isDown: function(keyCode) {
     return this._pressed[keyCode];
   },
 
   onKeydown: function(event) {
     this._pressed[event.keyCode] = new Date().getTime();
+    this._pressedcheckOnce[event.keyCode] = new Date().getTime();
   },
 
   onKeyup: function(event) {
     delete this._pressed[event.keyCode];
-  },
-	//onKeypress: function (event){
-	//	this._pressed[event.keyCode] = new Date().getTime();
-	//}
+  }
 };
 
 if (!window.requestAnimationFrame)
@@ -75,7 +82,7 @@ function Shark(){
   this.elem = document.createElement("div");
   this.elem.className = "shark";
   this.style=this.elem.style;
-  this.fire=fire;
+  this.fire=fireLaserShark;
 }
 function Bug(){
   this.position = new Point();
@@ -84,9 +91,10 @@ function Bug(){
   this.style=this.elem.style;
 	this.parent=gameContainer;
 	this.destroy = destroyBug;
+  this.fire=fireBug;
 }
-function projectile(speed){
-  this.position = new Point();
+function projectile(speed,x,y){
+  this.position = new Point(x,y);
   this.speed = (speed)?speed:1;
   this.elem = document.createElement("div");
   this.elem.className = "projectile";
@@ -108,12 +116,23 @@ function destroyProjectile(){
 	//if (!this) return;
   this.parent.removeChild(this.elem);
 }
-function fire(){
-  var p = new projectile();
-  p.position = new Point(laserShark.position.x+(sharkSizeX/2),laserShark.position.y);
+function fireBug(){
+  if (!endGame){
+    var p = new projectile(-0.5,this.position.x+(bugSize/2),this.position.y+bugSize);
+    //p.position = new Point(this.position.x+(bugSize/2),this.position.y+bugSize);
+    gameContainer.appendChild(p.elem);
+    bugProjectiles.push(p);
+  }
+}
 
-  gameContainer.appendChild(p.elem);
-  projectiles.push(p);
+function fireLaserShark(){
+  if (!endGame){
+    var p = new projectile();
+    p.position = new Point(laserShark.position.x+(sharkSizeX/2),laserShark.position.y);
+
+    gameContainer.appendChild(p.elem);
+    projectiles.push(p);
+  }
 }
 //functions
 function fillBugsArray(n){
@@ -146,15 +165,19 @@ function init(){
   initBugsPosition();
   initSharkPosition();
 }
-function moveProjectiles(time){
-  for (var i in projectiles){
-    projectiles[i].position.y-=time * projectiles[i].speed;
-		if (projectiles[i].position.y< (0 - 2 * projectileSizeY)){
-			projectiles[i].destroy();
-			projectiles.splice(i,1);
+function moveProjectiles(time,proj){
+
+  for (var i in proj){
+    var bugProjDestroy = (proj[i].position.y<  0 - 2 * projectileSizeY);
+    var sharkProjDestroy =  (proj[i].position.y >  mapY);
+    proj[i].position.y-=time * proj[i].speed;
+		if (bugProjDestroy || sharkProjDestroy){
+			proj[i].destroy();
+			proj.splice(i,1);
 		}
   }
 }
+
 
 function moveShark(move,time){
   laserShark.position.x += move*time;
@@ -164,6 +187,8 @@ function moveShark(move,time){
 function moveBugs(){
   if (!turn){
     for (var i in bugs){
+      if (new Date().getTime()%(50-(Math.floor(Math.random()*10)+10))==0)
+      bugs[i].fire();
       if (bugDirection==1){
         bugs[i].position.x-=25;
         if (bugs[i].position.x  < (bugSize)){
@@ -181,6 +206,8 @@ function moveBugs(){
   else{
     bugDirection=(bugDirection==1)?0:1;
     for (var i in bugs){
+      if (new Date().getTime()%5==0)
+      bugs[i].fire();
       bugs[i].position.y+=25;
       if (bugs[i].position.y==(mapY-bugSize-sharkSizeY))
         endGame=true;
@@ -197,15 +224,20 @@ function gameLoop (){
     elapsedTime += currentTimestamp - previousTimestamp;
 		lastRefresh = currentTimestamp - previousTimestamp;
     lastBugRefresh += currentTimestamp - previousTimestamp;
+
+    //moving bugs
     if (lastBugRefresh > bugMovePeriodTime){
       lastBugRefresh = 0;
       moveBugs();
     }
-    moveProjectiles(lastRefresh);
+    //moving shark projectiles
+    moveProjectiles(lastRefresh,projectiles);
+    moveProjectiles(lastRefresh,bugProjectiles);
     refreshPosition(lastRefresh);
-    //window.setTimeout(gameLoop, 20);
 		if (Key.isDown(Key.LEFT)) moveShark(-0.5,lastRefresh);
 		if (Key.isDown(Key.RIGHT)) moveShark(+0.5,lastRefresh);
+    if (Key.isPressed(Key.SPACE)) laserShark.fire();
+    if (Key.isPressed(Key.UP)) laserShark.fire();
 		detectCollision();
 		if (bugNumber==0)endGame=true;
   }
@@ -217,6 +249,9 @@ function refreshPosition(){
   for (var i in projectiles){
     refreshElementPosition(projectiles[i]);
   }
+  for (var i in bugProjectiles){
+    refreshElementPosition(bugProjectiles[i]);
+  }
     refreshElementPosition(laserShark);
 }
 function refreshElementPosition(e){
@@ -224,6 +259,7 @@ function refreshElementPosition(e){
   e.style.top = e.position.y;
 }
 function detectCollision(){
+  outerloop:
 	for (var i in projectiles){
 		for (var j in bugs){
 			square = bugs[j];
@@ -236,7 +272,8 @@ function detectCollision(){
 		   square.position.x + squareSize > rect.position.x &&
 		   square.position.y < rect.position.y + rectHeight &&
 		   squareSize + square.position.y > rect.position.y) {
-		    // destroyLaserbeam
+      //collision detected
+        // destroyLaserbeam
 				projectiles[i].destroy();
 				projectiles.splice(i,1);
 
@@ -244,6 +281,7 @@ function detectCollision(){
 				bugs[j].destroy();
 				bugs.splice(j,1);
 				bugNumber--;
+        continue outerloop;
 			}
 		}
 	}
@@ -253,20 +291,7 @@ window.onload= function (){
   currentTimestamp = new Date().getTime();
   gameLoop();
 };
-document.onkeypress = function(e) {
-    e = e || window.event;
-    switch(e.which || e.keyCode) {
-      case 32: // down
-        fire();
-        break;
-			case	38: // down
-	        fire();
-	        break;
 
-        default: return; // exit this handler for other keys
-    }
-    e.preventDefault(); // prevent the default action (scroll / move caret)
-};
 
 window.addEventListener('keyup', function(event) { Key.onKeyup(event); }, false);
 window.addEventListener('keydown', function(event) { Key.onKeydown(event); }, false);

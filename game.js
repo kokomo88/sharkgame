@@ -7,7 +7,7 @@ var mapY = 600;
 var bugSize = 50;
 var bugSpace = 25;
 var bugsInARow = 6;
-var bugMoveFrequency= 800;
+var bugMovePeriodTime= 800;
 var bugNumber = 12;
 var sharkSizeX = 50;
 var sharkSizeY = 100;
@@ -197,7 +197,7 @@ function gameLoop (){
     elapsedTime += currentTimestamp - previousTimestamp;
 		lastRefresh = currentTimestamp - previousTimestamp;
     lastBugRefresh += currentTimestamp - previousTimestamp;
-    if (lastBugRefresh > bugMoveFrequency){
+    if (lastBugRefresh > bugMovePeriodTime){
       lastBugRefresh = 0;
       moveBugs();
     }

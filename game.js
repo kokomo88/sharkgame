@@ -76,8 +76,10 @@ function checkBugNumber(){
       break;
     case 4:
       bugMovePeriodTime = 300;
+			break;
     case 2:
       bugMovePeriodTime = 200;
+			break;
     case 1:
       bugMovePeriodTime = 50;
       break;

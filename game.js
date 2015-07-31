@@ -24,6 +24,7 @@ var previousTimestamp = 0;
 var currentTimestamp = 0 ;
 var elapsedTime = 0;
 var count = 0;
+var audio=true;
 
 var Key = {
   _pressed: {},
@@ -115,12 +116,14 @@ function destroyBug(){
   var index = bugs.indexOf(this);
   bugs.splice(index,1);
   bugNumber--;
+  if (audio)sounds.explosionBug.audio.cloneNode(true).play();
 }
 function destroyProjectile(){
 	//if (!this) return;
   this.parent.removeChild (this.elem);
 }
 function destroyShark(){
+  if (audio) sounds.explosionShark.audio.cloneNode(true).play();
   endGame = true;
 }
 function fireBug(){
@@ -129,6 +132,7 @@ function fireBug(){
     //p.position = new Point(this.position.x+(bugSize/2),this.position.y+bugSize);
     gameContainer.appendChild(p.elem);
     bugProjectiles.push(p);
+    if (audio)sounds.laserBug.audio.cloneNode(true).play();
   }
 }
 
@@ -139,6 +143,7 @@ function fireLaserShark(){
 
     gameContainer.appendChild(p.elem);
     projectiles.push(p);
+    if (audio)sounds.laserShark.audio.cloneNode(true).play();
   }
 }
 //functions
@@ -277,10 +282,10 @@ function detectCollision(projectArr,targetArr){
 			rectHeight = projectileSizeY;
 
 			if (square.position.x < rect.position.x + rectWidth &&
-		   square.position.x + squareSize > rect.position.x &&
-		   square.position.y < rect.position.y + rectHeight &&
-		   squareSize + square.position.y > rect.position.y) {
-      //collision detected
+        square.position.x + squareSize > rect.position.x &&
+		    square.position.y < rect.position.y + rectHeight &&
+        squareSize + square.position.y > rect.position.y) {
+        //collision detected
         // destroyLaserbeam
 				projectArr[i].destroy();
 				projectArr.splice(i,1);

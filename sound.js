@@ -1,7 +1,8 @@
 var sounds= {
     "explosionShark": {
         "webURL": "https://www.freesound.org/people/thehorriblejoke/sounds/259962/",
-        "soundURL": "https://www.freesound.org/data/previews/259/259962_2463454-lq",
+        //"soundURL": "https://www.freesound.org/data/previews/259/259962_2463454-lq",
+        "soundURL": "http://s1download-universal-soundbank.com/mp3/sounds/18591",
         "audio":""
     },
     "explosionBug": {

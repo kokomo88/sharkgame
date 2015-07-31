@@ -83,6 +83,7 @@ function Shark(){
   this.elem.className = "shark";
   this.style=this.elem.style;
   this.fire=fireLaserShark;
+  this.destroy=destroyShark;
 }
 function Bug(){
   this.position = new Point();
@@ -111,10 +112,16 @@ function setPoint(x,y){
 }
 function destroyBug(){
 	this.parent.removeChild(this.elem);
+  var index = bugs.indexOf(this);
+  bugs.splice(index,1);
+  bugNumber--;
 }
 function destroyProjectile(){
 	//if (!this) return;
-  this.parent.removeChild(this.elem);
+  this.parent.removeChild (this.elem);
+}
+function destroyShark(){
+  endGame = true;
 }
 function fireBug(){
   if (!endGame){
@@ -238,7 +245,8 @@ function gameLoop (){
 		if (Key.isDown(Key.RIGHT)) moveShark(+0.5,lastRefresh);
     if (Key.isPressed(Key.SPACE)) laserShark.fire();
     if (Key.isPressed(Key.UP)) laserShark.fire();
-		detectCollision();
+		detectCollision(projectiles,bugs);
+    detectCollision(bugProjectiles,[laserShark]);
 		if (bugNumber==0)endGame=true;
   }
 }
@@ -258,13 +266,13 @@ function refreshElementPosition(e){
   e.style.left = e.position.x;
   e.style.top = e.position.y;
 }
-function detectCollision(){
+function detectCollision(projectArr,targetArr){
   outerloop:
-	for (var i in projectiles){
-		for (var j in bugs){
-			square = bugs[j];
+	for (var i in projectArr){
+		for (var j in targetArr){
+			square = targetArr[j];
 			squareSize = bugSize;
-			rect = projectiles[i];
+			rect = projectArr[i];
 			rectWidth = projectileSizeX;
 			rectHeight = projectileSizeY;
 
@@ -274,13 +282,11 @@ function detectCollision(){
 		   squareSize + square.position.y > rect.position.y) {
       //collision detected
         // destroyLaserbeam
-				projectiles[i].destroy();
-				projectiles.splice(i,1);
+				projectArr[i].destroy();
+				projectArr.splice(i,1);
 
 				//destroyBug
-				bugs[j].destroy();
-				bugs.splice(j,1);
-				bugNumber--;
+				targetArr[j].destroy();
         continue outerloop;
 			}
 		}
